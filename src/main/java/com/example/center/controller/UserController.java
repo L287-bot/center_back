@@ -27,6 +27,7 @@ import static com.example.center.constant.UserConstant.USER_LOGIN_STATE;
  * 用户接口
  */
 @RestController
+
 @RequestMapping("/user")
 public class UserController {
     @Resource
@@ -43,7 +44,9 @@ public class UserController {
         //拿到登录状态，仅有管理员可以查询
         Object userObj=request.getSession().getAttribute(USER_LOGIN_STATE);
         User user=(User)userObj;
+        System.out.println(user.getUserStatus());
         return user != null && user.getUserStatus() == ADMIN_ROLE;
+
     }
 
     /**
@@ -75,17 +78,20 @@ public class UserController {
      * @return
      */
     @PostMapping("/login")
-    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request)
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest,  HttpServletRequest request)
     {
         if (userLoginRequest==null)
         {
-            return null;
+
+            return ResultUtils.error(ErrorCode.PARAM_ERROR);
         }
         String userAccount=userLoginRequest.getUserAccount();
+        System.out.println(userAccount);
         String userPassword=userLoginRequest.getUserPassword();
+        System.out.println(userPassword);
         if(StringUtils.isAnyBlank(userAccount,userPassword))
         {
-            return null;
+            return ResultUtils.error(ErrorCode.PARAM_ERROR);
         }
           User user= userService.doLogin(userAccount, userPassword,request);
         return ResultUtils.success(user);
@@ -124,7 +130,7 @@ public class UserController {
      * @return
      */
     @PostMapping("/delete")
-    public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request)
+    public BaseResponse<Boolean> deleteUser( long id, HttpServletRequest request)
     {
         //拿到登录状态，仅有管理员可以删除用户
         if(!isAdmin(request))
@@ -138,6 +144,50 @@ public class UserController {
         boolean a= userService.removeById(id);
         return ResultUtils.success(a);
     }
+
+    /**
+     * 根据id查找用户
+     * @param id
+     * @param request
+     * @return
+     */
+    @PostMapping("/find")
+    public  BaseResponse<User> findById( long id,HttpServletRequest request)
+    {
+      if(!isAdmin(request))
+      {
+          throw  new BusinessException(ErrorCode.NO_AUTH,"你没有权限进行此操作");
+      }
+      if (id<=0)
+      {
+          throw new BusinessException(ErrorCode.PARAM_ERROR);
+      }
+      User user=userService.getById(id);
+      return ResultUtils.success(userService.getSafetyUser(user));
+    }
+
+    /**
+     * 用户信息修改
+     * @param user
+     * @param request
+     * @return
+     */
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateUser(@RequestBody User user,HttpServletRequest request)
+    {   if (user==null)
+    {
+        throw new BusinessException(ErrorCode.PARAM_ERROR);
+    }
+        if(!isAdmin(request))
+        {
+            throw  new BusinessException(ErrorCode.NO_AUTH,"你没有权限进行此操作");
+        }
+        return ResultUtils.success(userService.updateById(user));
+    }
+
+
+
+
 
     /**
      * 得到当前用户信息

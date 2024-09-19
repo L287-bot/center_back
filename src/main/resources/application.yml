@@ -13,6 +13,8 @@ spring:
     timeout: 86400
 server:
   port: 8080
+  servlet:
+    context-path: /api
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false  #关闭驼峰转换
