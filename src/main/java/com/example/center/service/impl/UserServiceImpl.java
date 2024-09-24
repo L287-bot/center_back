@@ -33,10 +33,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Resource
     private  UserMapper userMapper;
-    /**
-     * 盐值
-     */
-    private static final String  SALT="lsc";
+
+        /**
+         * 盐值
+         */
+        private static final String  SALT="lsc";
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
